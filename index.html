@@ -255,7 +255,7 @@
 
   <!-- Navigation -->
   <nav class="nav" id="nav-bar">
-    <a href="/" class="nav-brand">
+    <a href="index.html" class="nav-brand">
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <rect width="28" height="28" rx="8" fill="#22c55e"/>
         <path d="M8 20c0-6 4-12 12-12-2 4-2 8-2 12" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -264,8 +264,8 @@
       KrishiScan
     </a>
     <div class="nav-links">
-      <a href="/" class="active" id="nav-home">Home</a>
-      <a href="/scan.html" id="nav-scan">Scan</a>
+      <a href="index.html" class="active" id="nav-home">Home</a>
+      <a href="scan.html" id="nav-scan">Scan</a>
     </div>
   </nav>
 
@@ -277,7 +277,7 @@
     <h1>Protect your crops<br/>with AI</h1>
     <p>Snap a photo of any crop leaf and get instant disease diagnosis, severity rating, and treatment steps — all powered by artificial intelligence.</p>
     <div class="hero-actions">
-      <a href="/scan.html" class="btn-primary" id="btn-scan-crop">
+      <a href="scan.html" class="btn-primary" id="btn-scan-crop">
         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         Scan Crop
       </a>
@@ -353,25 +353,30 @@
   </footer>
 
   <script>
-    // ---------- Weather ----------
+    // ---------- Weather (with mock fallback for GitHub Pages) ----------
+    const MOCK_WEATHER = {
+      location:"Jaipur, IN",temperature:32,feels_like:35,humidity:58,
+      description:"Partly Cloudy",wind_speed:12,
+      advice:"Moderate UV — consider applying mulch to retain soil moisture."
+    };
+    function renderWeather(d) {
+      document.getElementById('w-location').textContent = d.location;
+      document.getElementById('w-temp').innerHTML = `${d.temperature}<small>°C</small>`;
+      document.getElementById('w-desc').textContent = d.description;
+      document.getElementById('w-humidity').textContent = `${d.humidity}%`;
+      document.getElementById('w-wind').textContent = `${d.wind_speed} km/h`;
+      document.getElementById('w-feels').textContent = `${d.feels_like}°C`;
+      document.getElementById('w-advice').textContent = `🌾 ${d.advice}`;
+      document.getElementById('weather-loading').style.display = 'none';
+      document.getElementById('weather-content').style.display = 'block';
+    }
     (async () => {
       try {
         const res = await fetch('/api/weather');
-        if (!res.ok) throw new Error('Weather fetch failed');
-        const d = await res.json();
-
-        document.getElementById('w-location').textContent = d.location;
-        document.getElementById('w-temp').innerHTML = `${d.temperature}<small>°C</small>`;
-        document.getElementById('w-desc').textContent = d.description;
-        document.getElementById('w-humidity').textContent = `${d.humidity}%`;
-        document.getElementById('w-wind').textContent = `${d.wind_speed} km/h`;
-        document.getElementById('w-feels').textContent = `${d.feels_like}°C`;
-        document.getElementById('w-advice').textContent = `🌾 ${d.advice}`;
-
-        document.getElementById('weather-loading').style.display = 'none';
-        document.getElementById('weather-content').style.display = 'block';
+        if (!res.ok) throw new Error('fail');
+        renderWeather(await res.json());
       } catch {
-        document.getElementById('weather-loading').textContent = 'Unable to load weather data.';
+        renderWeather(MOCK_WEATHER);
       }
     })();
   </script>
