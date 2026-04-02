@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — KrishiScan</title>
+  <meta name="description" content="Your AI-powered crop disease diagnosis results with treatment recommendations."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <link rel="stylesheet" href="result.css"/>
+</head>
+<body>
+  <div class="bg-shapes"><span></span><span></span></div>
+  <nav class="nav">
+    <a href="/" class="nav-brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M8 20c0-6 4-12 12-12-2 4-2 8-2 12" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 18c2-4 5-6 10-7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".6"/></svg>
+      KrishiScan
+    </a>
+    <div class="nav-links">
+      <a href="/" id="nav-home">Home</a>
+      <a href="/scan.html" id="nav-scan">Scan</a>
+    </div>
+  </nav>
+
+  <main class="result-container" id="result-container">
+    <!-- No Result State -->
+    <div class="no-result" id="no-result">
+      <div class="no-result-icon">🔍</div>
+      <h2>No Scan Results</h2>
+      <p>You haven't scanned a crop yet. Go to the scan page to analyze a leaf photo.</p>
+      <a href="/scan.html" class="btn-primary" id="btn-go-scan">Scan a Crop</a>
+    </div>
+
+    <!-- Result Content (hidden by default) -->
+    <div id="result-content" style="display:none">
+      <!-- Image preview -->
+      <div class="result-image-wrap">
+        <img id="result-image" alt="Scanned crop leaf"/>
+        <div class="result-badge" id="result-source-badge">AI Analysis</div>
+      </div>
+
+      <!-- Disease Card -->
+      <div class="disease-card" id="disease-card">
+        <div class="disease-header">
+          <div class="disease-icon" id="disease-icon">🍂</div>
+          <div>
+            <h1 class="disease-name" id="disease-name">—</h1>
+            <div class="disease-meta">
+              <span class="severity-badge" id="severity-badge">—</span>
+              <span class="confidence-label" id="confidence-label">—% confidence</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="confidence-section">
+          <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill" id="confidence-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Treatment -->
+        <div class="treatment-section">
+          <h2 class="treatment-title">💊 Treatment Steps</h2>
+          <ol class="treatment-list" id="treatment-list"></ol>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="result-actions">
+        <a href="/scan.html" class="btn-primary" id="btn-scan-again">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Scan Again
+        </a>
+        <a href="/" class="btn-secondary" id="btn-go-home">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Back to Home
+        </a>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer">
+        ⚠️ This is an AI-assisted diagnosis. Always consult a certified agronomist for professional advice.
+      </div>
+    </div>
+  </main>
+  <footer>&copy; 2026 KrishiScan</footer>
+  <script src="result.js"></script>
+</body>
+</html>

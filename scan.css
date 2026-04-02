@@ -1,0 +1,31 @@
+/* SCAN PAGE */
+.scan-container{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;padding:32px 20px 40px;gap:24px;max-width:520px;margin:0 auto;width:100%}
+.scan-title{font-size:1.6rem;font-weight:800;text-align:center;background:linear-gradient(135deg,var(--green-700),var(--green-500));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:fadeInDown .6s ease-out both}
+.scan-subtitle{font-size:.9rem;color:var(--slate-500);text-align:center;margin-top:-8px;animation:fadeInDown .6s ease-out .1s both}
+.upload-zone{width:100%;aspect-ratio:4/3;border:2.5px dashed var(--green-300);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;transition:var(--transition);background:rgba(255,255,255,.5);backdrop-filter:blur(6px);position:relative;overflow:hidden;animation:fadeInDown .6s ease-out .2s both}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--green-500);background:var(--green-50)}
+.upload-zone.has-image{border-style:solid;border-color:var(--green-400)}
+.upload-icon{width:56px;height:56px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;transition:var(--transition)}
+.upload-zone:hover .upload-icon{background:var(--green-200);transform:scale(1.05)}
+.upload-text{font-size:.88rem;color:var(--slate-500);text-align:center;line-height:1.5}
+.upload-text strong{color:var(--green-600)}
+.upload-zone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:13px}
+.upload-zone .remove-btn{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:1.1rem;display:grid;place-items:center;transition:var(--transition);z-index:2;backdrop-filter:blur(4px)}
+.upload-zone .remove-btn:hover{background:rgba(220,38,38,.8)}
+.input-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;animation:fadeInDown .6s ease-out .3s both}
+.input-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 10px;border-radius:var(--radius);border:1.5px solid var(--green-200);background:rgba(255,255,255,.7);backdrop-filter:blur(6px);cursor:pointer;transition:var(--transition);font-size:.82rem;font-weight:600;color:var(--slate-600);font-family:inherit}
+.input-btn:hover{border-color:var(--green-400);background:var(--green-50);transform:translateY(-2px)}
+.input-btn svg{color:var(--green-600)}
+.btn-analyze{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:999px;border:none;font-family:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;transition:var(--transition);animation:fadeInDown .6s ease-out .4s both}
+.btn-analyze.ready{background:linear-gradient(135deg,var(--green-500),var(--green-600));color:#fff;box-shadow:0 4px 20px rgba(34,197,94,.35)}
+.btn-analyze.ready:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,197,94,.45)}
+.btn-analyze.disabled{background:var(--slate-200);color:var(--slate-400);pointer-events:none}
+.btn-analyze.loading{background:var(--green-600);color:#fff;pointer-events:none}
+.spinner{width:22px;height:22px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:12px 16px;border-radius:var(--radius-sm);font-size:.85rem;width:100%;text-align:center;display:none;animation:fadeInDown .3s ease-out both}
+.tips{width:100%;animation:fadeInDown .6s ease-out .5s both}
+.tips h3{font-size:.8rem;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.tip-list{display:flex;flex-direction:column;gap:8px}
+.tip{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:var(--slate-600);line-height:1.5}
+.tip-dot{flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--green-400);margin-top:6px}

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KrishiScan — AI Crop Disease Detection</title>
+  <meta name="description" content="KrishiScan uses AI to instantly detect crop diseases from leaf photos. Get treatment recommendations and protect your harvest." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ======== DESIGN TOKENS ======== */
+    :root {
+      --green-50: #f0fdf4;
+      --green-100: #dcfce7;
+      --green-200: #bbf7d0;
+      --green-300: #86efac;
+      --green-400: #4ade80;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --green-800: #166534;
+      --green-900: #14532d;
+      --yellow-400: #facc15;
+      --blue-400: #60a5fa;
+      --blue-500: #3b82f6;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
+      --transition: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ======== RESET ======== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, var(--green-50) 0%, #fff 40%, var(--green-50) 100%);
+      color: var(--slate-800);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ======== ANIMATED BACKGROUND SHAPES ======== */
+    .bg-shapes {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bg-shapes span {
+      position: absolute; border-radius: 50%; opacity: .12; filter: blur(80px);
+      animation: float 18s ease-in-out infinite alternate;
+    }
+    .bg-shapes span:nth-child(1) { width: 420px; height: 420px; background: var(--green-400); top: -10%; left: -8%; animation-delay: 0s; }
+    .bg-shapes span:nth-child(2) { width: 340px; height: 340px; background: var(--green-300); bottom: 5%; right: -6%; animation-delay: -6s; }
+    .bg-shapes span:nth-child(3) { width: 260px; height: 260px; background: var(--yellow-400); top: 40%; left: 50%; animation-delay: -12s; }
+    @keyframes float {
+      0%   { transform: translateY(0)   scale(1); }
+      100% { transform: translateY(-40px) scale(1.08); }
+    }
+
+    /* ======== NAV ======== */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      background: rgba(255,255,255,.72);
+      border-bottom: 1px solid rgba(0,0,0,.05);
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800; font-size: 1.25rem; color: var(--green-700);
+    }
+    .nav-brand svg { flex-shrink: 0; }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-links a {
+      padding: 7px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+      color: var(--slate-600); transition: var(--transition);
+    }
+    .nav-links a:hover, .nav-links a.active {
+      background: var(--green-100); color: var(--green-700);
+    }
+
+    /* ======== HERO ======== */
+    .hero {
+      position: relative; z-index: 1;
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 60px 24px 40px;
+      gap: 24px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-100); color: var(--green-700);
+      font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      padding: 6px 14px; border-radius: 999px;
+      animation: fadeInDown .6s ease-out both;
+    }
+    .hero-badge span { font-size: .65rem; }
+    .hero h1 {
+      font-size: clamp(2.4rem, 8vw, 3.8rem); font-weight: 900;
+      line-height: 1.08; letter-spacing: -.03em;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInDown .7s ease-out .1s both;
+    }
+    .hero p {
+      font-size: 1.1rem; color: var(--slate-500); max-width: 420px; line-height: 1.6;
+      animation: fadeInDown .7s ease-out .2s both;
+    }
+    .hero-actions {
+      display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;
+      animation: fadeInDown .7s ease-out .3s both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--green-500), var(--green-600));
+      color: #fff; font-weight: 700; font-size: 1.05rem;
+      padding: 16px 36px; border-radius: 999px; border: none; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(34,197,94,.35);
+      transition: var(--transition); position: relative; overflow: hidden;
+      width: 100%; max-width: 320px; justify-content: center;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,197,94,.45);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.18), transparent);
+      pointer-events: none;
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.7); border: 1.5px solid var(--green-200);
+      color: var(--green-700); font-weight: 600; font-size: .9rem;
+      padding: 12px 28px; border-radius: 999px; cursor: pointer;
+      transition: var(--transition); width: 100%; max-width: 320px; justify-content: center;
+    }
+    .btn-secondary:hover { background: var(--green-100); }
+
+    /* ======== FEATURES GRID ======== */
+    .features {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr; gap: 14px;
+      padding: 0 20px 32px; max-width: 600px; margin: 0 auto; width: 100%;
+      animation: fadeInDown .7s ease-out .45s both;
+    }
+    @media (min-width: 480px) { .features { grid-template-columns: 1fr 1fr; } }
+    .feature-card {
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.5);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      display: flex; flex-direction: column; gap: 8px;
+      transition: var(--transition);
+    }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .feature-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: grid; place-items: center; font-size: 1.3rem;
+    }
+    .feature-icon.green { background: var(--green-100); }
+    .feature-icon.blue  { background: #dbeafe; }
+    .feature-icon.amber { background: #fef3c7; }
+    .feature-icon.rose  { background: #ffe4e6; }
+    .feature-card h3 { font-size: .92rem; font-weight: 700; color: var(--slate-800); }
+    .feature-card p  { font-size: .8rem; color: var(--slate-500); line-height: 1.5; }
+
+    /* ======== WEATHER WIDGET ======== */
+    .weather-section {
+      position: relative; z-index: 1;
+      padding: 0 20px 40px; max-width: 600px; margin: 0 auto; width: 100%;
+      animation: fadeInDown .7s ease-out .55s both;
+    }
+    .weather-card {
+      background: linear-gradient(135deg, var(--green-600), var(--green-700));
+      border-radius: var(--radius); padding: 24px; color: #fff;
+      box-shadow: 0 8px 30px rgba(22,163,74,.3);
+      position: relative; overflow: hidden;
+    }
+    .weather-card::before {
+      content: ''; position: absolute; width: 200px; height: 200px;
+      background: rgba(255,255,255,.06); border-radius: 50%;
+      top: -60px; right: -40px;
+    }
+    .weather-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .weather-header h2 { font-size: 1rem; font-weight: 700; }
+    .weather-header .location { font-size: .8rem; opacity: .8; margin-top: 2px; }
+    .weather-temp { font-size: 2.8rem; font-weight: 900; line-height: 1; }
+    .weather-temp small { font-size: 1rem; font-weight: 500; opacity: .7; }
+    .weather-desc { font-size: .85rem; opacity: .85; margin-top: 4px; text-transform: capitalize; }
+    .weather-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px;
+      border-top: 1px solid rgba(255,255,255,.15); padding-top: 16px;
+    }
+    .weather-stat { text-align: center; }
+    .weather-stat .label { font-size: .7rem; opacity: .65; text-transform: uppercase; letter-spacing: .05em; }
+    .weather-stat .value { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+    .weather-advice {
+      margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.12); font-size: .78rem; line-height: 1.5; opacity: .9;
+    }
+    .weather-loading {
+      text-align: center; padding: 40px; font-size: .85rem; opacity: .7;
+    }
+
+    /* ======== FOOTER ======== */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 20px; font-size: .75rem; color: var(--slate-400);
+    }
+
+    /* ======== ANIMATIONS ======== */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: .5; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--slate-100) 25%, var(--slate-200) 50%, var(--slate-100) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Animated background blobs -->
+  <div class="bg-shapes"><span></span><span></span><span></span></div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav-bar">
+    <a href="/" class="nav-brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="#22c55e"/>
+        <path d="M8 20c0-6 4-12 12-12-2 4-2 8-2 12" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M10 18c2-4 5-6 10-7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+      </svg>
+      KrishiScan
+    </a>
+    <div class="nav-links">
+      <a href="/" class="active" id="nav-home">Home</a>
+      <a href="/scan.html" id="nav-scan">Scan</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero-section">
+    <div class="hero-badge">
+      <span>🌿</span> Smart Agriculture · Hackathon 2026
+    </div>
+    <h1>Protect your crops<br/>with AI</h1>
+    <p>Snap a photo of any crop leaf and get instant disease diagnosis, severity rating, and treatment steps — all powered by artificial intelligence.</p>
+    <div class="hero-actions">
+      <a href="/scan.html" class="btn-primary" id="btn-scan-crop">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scan Crop
+      </a>
+      <button class="btn-secondary" onclick="document.getElementById('weather-section').scrollIntoView({behavior:'smooth'})" id="btn-check-weather">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.36 5.64l1.41-1.41"/><circle cx="12" cy="12" r="5"/></svg>
+        Check Weather
+      </button>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features-section">
+    <div class="feature-card" id="feature-ai">
+      <div class="feature-icon green">🔬</div>
+      <h3>AI Disease Detection</h3>
+      <p>Advanced ML models identify 30+ crop diseases from a single photo in seconds.</p>
+    </div>
+    <div class="feature-card" id="feature-treatment">
+      <div class="feature-icon blue">💊</div>
+      <h3>Treatment Plans</h3>
+      <p>Get actionable, step-by-step treatment guidance tailored to each diagnosis.</p>
+    </div>
+    <div class="feature-card" id="feature-weather">
+      <div class="feature-icon amber">🌤️</div>
+      <h3>Weather Insights</h3>
+      <p>Real-time weather data helps you time treatments and irrigation perfectly.</p>
+    </div>
+    <div class="feature-card" id="feature-mobile">
+      <div class="feature-icon rose">📱</div>
+      <h3>Works on Any Phone</h3>
+      <p>No app install needed — just open in your phone browser and start scanning.</p>
+    </div>
+  </section>
+
+  <!-- Weather Widget -->
+  <section class="weather-section" id="weather-section">
+    <div class="weather-card" id="weather-card">
+      <div class="weather-loading" id="weather-loading">
+        Loading weather data…
+      </div>
+      <div id="weather-content" style="display:none;">
+        <div class="weather-header">
+          <div>
+            <h2>🌦️ Farm Weather</h2>
+            <div class="location" id="w-location">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="weather-temp" id="w-temp">—<small>°C</small></div>
+            <div class="weather-desc" id="w-desc">—</div>
+          </div>
+        </div>
+        <div class="weather-grid">
+          <div class="weather-stat">
+            <div class="label">Humidity</div>
+            <div class="value" id="w-humidity">—</div>
+          </div>
+          <div class="weather-stat">
+            <div class="label">Wind</div>
+            <div class="value" id="w-wind">—</div>
+          </div>
+          <div class="weather-stat">
+            <div class="label">Feels Like</div>
+            <div class="value" id="w-feels">—</div>
+          </div>
+        </div>
+        <div class="weather-advice" id="w-advice">—</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2026 KrishiScan · Built with 🌱 for Smart Agriculture Hackathon
+  </footer>
+
+  <script>
+    // ---------- Weather ----------
+    (async () => {
+      try {
+        const res = await fetch('/api/weather');
+        if (!res.ok) throw new Error('Weather fetch failed');
+        const d = await res.json();
+
+        document.getElementById('w-location').textContent = d.location;
+        document.getElementById('w-temp').innerHTML = `${d.temperature}<small>°C</small>`;
+        document.getElementById('w-desc').textContent = d.description;
+        document.getElementById('w-humidity').textContent = `${d.humidity}%`;
+        document.getElementById('w-wind').textContent = `${d.wind_speed} km/h`;
+        document.getElementById('w-feels').textContent = `${d.feels_like}°C`;
+        document.getElementById('w-advice').textContent = `🌾 ${d.advice}`;
+
+        document.getElementById('weather-loading').style.display = 'none';
+        document.getElementById('weather-content').style.display = 'block';
+      } catch {
+        document.getElementById('weather-loading').textContent = 'Unable to load weather data.';
+      }
+    })();
+  </script>
+</body>
+</html>

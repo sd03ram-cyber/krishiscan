@@ -1,0 +1,50 @@
+/* RESULT PAGE */
+.result-container{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 20px 40px;gap:20px;max-width:520px;margin:0 auto;width:100%}
+
+/* No result */
+.no-result{text-align:center;padding:60px 20px;animation:fadeInDown .6s ease-out both}
+.no-result-icon{font-size:3rem;margin-bottom:16px}
+.no-result h2{font-size:1.4rem;font-weight:800;color:var(--slate-800);margin-bottom:8px}
+.no-result p{font-size:.9rem;color:var(--slate-500);margin-bottom:24px;line-height:1.5}
+
+/* Image */
+.result-image-wrap{width:100%;border-radius:var(--radius);overflow:hidden;position:relative;animation:fadeInDown .5s ease-out both;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.result-image-wrap img{width:100%;height:220px;object-fit:cover}
+.result-badge{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:#fff;font-size:.7rem;font-weight:700;padding:5px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+
+/* Disease Card */
+.disease-card{width:100%;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.6);border-radius:var(--radius);padding:24px 20px;animation:fadeInDown .5s ease-out .15s both;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.disease-header{display:flex;align-items:flex-start;gap:14px}
+.disease-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;flex-shrink:0;background:var(--green-100)}
+.disease-name{font-size:1.35rem;font-weight:800;color:var(--slate-800);line-height:1.2}
+.disease-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.severity-badge{font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.severity-badge.high{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.severity-badge.medium{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.severity-badge.low{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.severity-badge.none{background:var(--green-100);color:var(--green-700);border:1px solid var(--green-200)}
+.confidence-label{font-size:.8rem;color:var(--slate-500);font-weight:600}
+
+/* Confidence bar */
+.confidence-section{margin-top:18px}
+.confidence-bar-bg{width:100%;height:10px;background:var(--slate-100);border-radius:999px;overflow:hidden}
+.confidence-bar-fill{height:100%;border-radius:999px;transition:width 1.2s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--green-400),var(--green-500))}
+.confidence-bar-fill.high{background:linear-gradient(90deg,#f87171,#dc2626)}
+.confidence-bar-fill.medium{background:linear-gradient(90deg,#fbbf24,#d97706)}
+
+/* Treatment */
+.treatment-section{margin-top:22px;border-top:1px solid var(--slate-200);padding-top:18px}
+.treatment-title{font-size:.95rem;font-weight:700;color:var(--slate-800);margin-bottom:14px}
+.treatment-list{display:flex;flex-direction:column;gap:10px;padding-left:20px}
+.treatment-list li{font-size:.85rem;color:var(--slate-600);line-height:1.6;padding-left:4px}
+.treatment-list li::marker{color:var(--green-500);font-weight:700}
+
+/* Actions */
+.result-actions{display:flex;flex-direction:column;gap:10px;width:100%;animation:fadeInDown .5s ease-out .3s both}
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--green-500),var(--green-600));color:#fff;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:999px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(34,197,94,.35);transition:var(--transition);width:100%}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,197,94,.45)}
+.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,.7);border:1.5px solid var(--green-200);color:var(--green-700);font-weight:600;font-size:.9rem;padding:12px 24px;border-radius:999px;cursor:pointer;transition:var(--transition);width:100%}
+.btn-secondary:hover{background:var(--green-100)}
+
+/* Disclaimer */
+.disclaimer{font-size:.75rem;color:var(--slate-400);text-align:center;line-height:1.5;padding:8px 16px;background:rgba(255,255,255,.5);border-radius:var(--radius-sm);animation:fadeInDown .5s ease-out .4s both}
