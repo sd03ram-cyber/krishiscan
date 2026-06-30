@@ -122,8 +122,11 @@ btnAnalyze.addEventListener('click', async () => {
     }
     result = await res.json();
   } catch (err) {
-    // Fallback to mock data (works on GitHub Pages without backend)
-    result = MOCK_DISEASES[Math.floor(Math.random() * MOCK_DISEASES.length)];
+    btnAnalyze.classList.remove('loading');
+    btnAnalyze.classList.add('ready');
+    btnAnalyze.innerHTML = 'Analyze';
+    showError(err.message || 'Analysis failed. Please try again.');
+    return;
   }
 
   sessionStorage.setItem('krishiscan_result', JSON.stringify(result));

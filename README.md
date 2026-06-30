@@ -90,6 +90,10 @@ set ROBOFLOW_API_KEY=your_roboflow_api_key
 
 # OpenWeatherMap (for live weather data)
 set OPENWEATHER_API_KEY=your_openweathermap_api_key
+
+# NVIDIA Integrate API (optional) — used for advanced LLM features
+set NVIDIA_API_KEY=your_nvidia_integration_api_key
+set NVIDIA_INVOKE_URL=https://integrate.api.nvidia.com/v1/chat/completions
 ```
 
 > **Note:** The app works perfectly without API keys — it uses realistic mock data as fallback.

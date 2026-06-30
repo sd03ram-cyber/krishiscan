@@ -20,7 +20,7 @@
 
   // Source badge
   const srcBadge = document.getElementById('result-source-badge');
-  srcBadge.textContent = result.source === 'roboflow' ? '🤖 Roboflow AI' : '🧪 AI Analysis';
+  srcBadge.textContent = result.source === 'nvidia' ? '🤖 NVIDIA AI' : '🧪 AI Analysis';
 
   // Disease name
   document.getElementById('disease-name').textContent = result.disease;
@@ -57,7 +57,11 @@
 
   // Treatment list
   const list = document.getElementById('treatment-list');
-  (result.treatment || []).forEach((step) => {
+  const treatmentSteps = [
+    ...(result.treatment || []),
+    ...((result.llm_advice || []).map((step) => `AI advice: ${step}`)),
+  ];
+  treatmentSteps.forEach((step) => {
     const li = document.createElement('li');
     li.textContent = step;
     list.appendChild(li);

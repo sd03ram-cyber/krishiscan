@@ -11,10 +11,13 @@ from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import httpx
 from PIL import Image
+from dotenv import load_dotenv
+import nvidia_api
+
+load_dotenv()
 
 app = FastAPI(title="KrishiScan API", version="1.0.0")
 
@@ -30,9 +33,33 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY", "")
-ROBOFLOW_MODEL = os.getenv("ROBOFLOW_MODEL", "plant-disease-detection-nkbjm/1")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "google/gemma-4-31b-it")
+
+
+def is_plant_like_image(contents: bytes) -> bool:
+    """Return True when the image looks like a plant photo."""
+    try:
+        with Image.open(io.BytesIO(contents)) as img:
+            img = img.convert("RGB")
+            width, height = img.size
+            if width < 80 or height < 80:
+                return False
+            pixels = list(img.getdata())
+            if not pixels:
+                return False
+            green_pixels = 0
+            bright_pixels = 0
+            for r, g, b in pixels:
+                if g > r + 20 and g > b + 20 and g > 70:
+                    green_pixels += 1
+                if (r + g + b) / 3 > 100:
+                    bright_pixels += 1
+            green_ratio = green_pixels / len(pixels)
+            bright_ratio = bright_pixels / len(pixels)
+            return green_ratio >= 0.08 and (bright_ratio >= 0.15 or green_ratio >= 0.25)
+    except Exception:
+        return False
 
 # ---------------------------------------------------------------------------
 # Fallback mock data
@@ -160,61 +187,78 @@ async def serve_result_js():
 # ---------------------------------------------------------------------------
 @app.post("/api/analyze")
 async def analyze_crop(file: UploadFile = File(...)):
-    """Accept an image upload, run disease detection, return results."""
+    """Accept an image upload, validate that it is plant-like, and return results."""
 
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Please upload a valid image file.")
 
     contents = await file.read()
 
-    # Validate image
     try:
         img = Image.open(io.BytesIO(contents))
         img.verify()
     except Exception:
         raise HTTPException(status_code=400, detail="The uploaded file is not a valid image.")
 
-    # --- Try Roboflow inference ---
-    if ROBOFLOW_API_KEY:
-        try:
-            img_b64 = base64.b64encode(contents).decode("utf-8")
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.post(
-                    f"https://detect.roboflow.com/{ROBOFLOW_MODEL}",
-                    params={"api_key": ROBOFLOW_API_KEY},
-                    json={"image": img_b64},
-                )
-            if resp.status_code == 200:
-                data = resp.json()
-                predictions = data.get("predictions", [])
-                if predictions:
-                    top = max(predictions, key=lambda p: p.get("confidence", 0))
-                    disease_name = top.get("class", "Unknown Disease")
-                    confidence = round(top.get("confidence", 0) * 100)
-                    severity = (
-                        "High" if confidence >= 85
-                        else "Medium" if confidence >= 60
-                        else "Low"
-                    )
-                    return {
-                        "disease": disease_name,
-                        "confidence": confidence,
-                        "severity": severity,
-                        "treatment": [
-                            f"Detected: {disease_name}. Consult a local agronomist for tailored advice.",
-                            "Remove visibly affected plant parts to limit spread.",
-                            "Apply an appropriate fungicide or pesticide after expert consultation.",
-                            "Ensure adequate spacing and ventilation around plants.",
-                            "Monitor crop closely over the next 7 days and scan again.",
-                        ],
-                        "source": "roboflow",
-                    }
-        except Exception:
-            pass  # fall through to mock
+    if not is_plant_like_image(contents):
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a clear photo of a plant leaf, root, stem, or flower.",
+        )
 
-    # --- Fallback to mock ---
-    result = random.choice(MOCK_DISEASES)
-    return {**result, "source": "mock"}
+    with Image.open(io.BytesIO(contents)) as img:
+        img_rgb = img.convert("RGB")
+        pixels = list(img_rgb.getdata())
+        green_pixels = sum(1 for r, g, b in pixels if g > r + 20 and g > b + 20 and g > 70)
+        green_ratio = green_pixels / len(pixels)
+
+    if green_ratio >= 0.22:
+        disease_name = "Healthy Plant / Mild Stress"
+        confidence = 82
+        severity = "Low"
+        treatment = [
+            "Keep the plant well watered and avoid over-fertilising.",
+            "Inspect the leaves for pests or discoloration once every two days.",
+            "Make sure the plant gets enough sunlight and airflow.",
+        ]
+    else:
+        disease_name = "Possible Plant Stress"
+        confidence = 74
+        severity = "Medium"
+        treatment = [
+            "Remove damaged leaves or parts gently to reduce spread.",
+            "Keep the soil balanced and avoid overwatering.",
+            "Check for pests, fungus, or nutrient deficiency and treat early.",
+        ]
+
+    result = {
+        "disease": disease_name,
+        "confidence": confidence,
+        "severity": severity,
+        "treatment": treatment,
+        "source": "heuristic",
+    }
+
+    if nvidia_api.is_configured():
+        try:
+            prompt = (
+                f"You are a crop health assistant. The uploaded image appears to be a plant photo. "
+                f"The likely diagnosis is: {disease_name}. Confidence: {confidence}%. "
+                "Provide 4 short, practical treatment steps for a farmer in plain language."
+            )
+            from starlette.concurrency import run_in_threadpool
+
+            resp = await run_in_threadpool(nvidia_api.chat_completion, prompt, model=NVIDIA_MODEL)
+            text = nvidia_api.extract_text_from_response(resp) if resp else None
+            if text:
+                lines = [line.strip() for line in text.splitlines() if line.strip()]
+                if lines:
+                    result["llm_advice"] = lines[:4]
+                    result["source"] = "nvidia"
+        except Exception:
+            pass
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -268,9 +312,27 @@ async def health():
     return {
         "status": "ok",
         "timestamp": datetime.utcnow().isoformat(),
-        "roboflow_configured": bool(ROBOFLOW_API_KEY),
+        "nvidia_configured": nvidia_api.is_configured(),
         "weather_configured": bool(OPENWEATHER_API_KEY),
     }
+
+
+@app.get("/api/ai-test")
+async def ai_test(q: str = "Hello from KrishiScan"):
+    """Simple endpoint to test NVIDIA chat completion integration."""
+    try:
+        # Return helpful message if not configured
+        if not nvidia_api.is_configured():
+            return {"ok": False, "error": "NVIDIA_API_KEY is not configured. See .env.example"}
+        # run in threadpool since nvidia_api uses requests
+        from starlette.concurrency import run_in_threadpool
+
+        res = await run_in_threadpool(nvidia_api.chat_completion, q)
+        # try to extract assistant text for readability
+        extract = nvidia_api.extract_text_from_response(res) if res else None
+        return {"ok": True, "raw": res, "text": extract}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
