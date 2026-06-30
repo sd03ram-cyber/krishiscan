@@ -217,6 +217,22 @@
       margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-sm);
       background: rgba(255,255,255,.12); font-size: .78rem; line-height: 1.5; opacity: .9;
     }
+    .weather-controls {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    }
+    .weather-controls input {
+      flex: 1; min-width: 200px; border: none; border-radius: 999px; padding: 10px 14px;
+      font-size: .9rem; color: var(--slate-800); outline: none;
+    }
+    .weather-controls button {
+      border: none; border-radius: 999px; padding: 10px 16px; font-weight: 700;
+      cursor: pointer; color: #fff; background: rgba(255,255,255,.16);
+      transition: var(--transition);
+    }
+    .weather-controls button:hover { background: rgba(255,255,255,.24); }
+    .weather-status {
+      margin-top: 8px; font-size: .75rem; opacity: .9;
+    }
     .weather-loading {
       text-align: center; padding: 40px; font-size: .85rem; opacity: .7;
     }
@@ -315,6 +331,12 @@
   <!-- Weather Widget -->
   <section class="weather-section" id="weather-section">
     <div class="weather-card" id="weather-card">
+      <div class="weather-controls">
+        <input id="weather-location-input" type="text" placeholder="Enter your city or village" aria-label="Enter your location" />
+        <button id="weather-location-btn" type="button">Get Weather</button>
+        <button id="weather-location-geo" type="button">Use my location</button>
+      </div>
+      <div class="weather-status" id="weather-status">Sharing your location gives more precise weather updates.</div>
       <div class="weather-loading" id="weather-loading">
         Loading weather data…
       </div>
@@ -359,6 +381,16 @@
       description:"Partly Cloudy",wind_speed:12,
       advice:"Moderate UV — consider applying mulch to retain soil moisture."
     };
+    const weatherInput = document.getElementById('weather-location-input');
+    const weatherBtn = document.getElementById('weather-location-btn');
+    const weatherGeoBtn = document.getElementById('weather-location-geo');
+    const weatherStatus = document.getElementById('weather-status');
+
+    function setWeatherStatus(message, isError = false) {
+      weatherStatus.textContent = message;
+      weatherStatus.style.color = isError ? '#fef2f2' : 'rgba(255,255,255,.9)';
+    }
+
     function renderWeather(d) {
       document.getElementById('w-location').textContent = d.location;
       document.getElementById('w-temp').innerHTML = `${d.temperature}<small>°C</small>`;
@@ -370,15 +402,75 @@
       document.getElementById('weather-loading').style.display = 'none';
       document.getElementById('weather-content').style.display = 'block';
     }
-    (async () => {
+
+    async function loadWeather({ location, lat, lon } = {}) {
+      const params = new URLSearchParams();
+      if (location) params.set('location', location);
+      if (typeof lat === 'number') params.set('lat', lat);
+      if (typeof lon === 'number') params.set('lon', lon);
+
       try {
-        const res = await fetch('/api/weather');
+        const res = await fetch(`/api/weather?${params.toString()}`);
         if (!res.ok) throw new Error('fail');
-        renderWeather(await res.json());
+        const data = await res.json();
+        renderWeather(data);
+        setWeatherStatus(`Weather updated for ${data.location}.`);
       } catch {
         renderWeather(MOCK_WEATHER);
+        setWeatherStatus('Showing fallback weather. Enter a city to refresh the forecast.', true);
       }
-    })();
+    }
+
+    weatherBtn.addEventListener('click', () => {
+      const location = weatherInput.value.trim();
+      if (!location) {
+        setWeatherStatus('Please enter a city or village name.', true);
+        weatherInput.focus();
+        return;
+      }
+      loadWeather({ location });
+    });
+
+    weatherInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        weatherBtn.click();
+      }
+    });
+
+    weatherGeoBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        setWeatherStatus('Geolocation is not supported in this browser.', true);
+        return;
+      }
+      setWeatherStatus('Requesting your current location…');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          loadWeather({ lat: position.coords.latitude, lon: position.coords.longitude });
+        },
+        () => {
+          setWeatherStatus('Location access was denied. Please enter a city name manually.', true);
+          weatherInput.focus();
+        },
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+      );
+    });
+
+    window.addEventListener('load', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            loadWeather({ lat: position.coords.latitude, lon: position.coords.longitude });
+          },
+          () => {
+            setWeatherStatus('Enter your city or village to get weather details for that location.');
+          },
+          { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+        );
+      } else {
+        setWeatherStatus('Enter your city or village to get weather details for that location.');
+      }
+    });
   </script>
 </body>
 </html>

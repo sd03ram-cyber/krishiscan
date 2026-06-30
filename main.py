@@ -265,17 +265,38 @@ async def analyze_crop(file: UploadFile = File(...)):
 # Weather endpoint
 # ---------------------------------------------------------------------------
 @app.get("/api/weather")
-async def get_weather(lat: float = 26.9124, lon: float = 75.7873):
-    """Return current weather. Defaults to Jaipur, India."""
+async def get_weather(location: str | None = None, lat: float | None = None, lon: float | None = None):
+    """Return current weather for a requested city or coordinates."""
 
-    if OPENWEATHER_API_KEY:
+    resolved_lat = lat
+    resolved_lon = lon
+    resolved_name = location or "Jaipur, India"
+
+    if location and OPENWEATHER_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                geo_resp = await client.get(
+                    "https://api.openweathermap.org/geo/1.0/direct",
+                    params={"q": location, "limit": 1, "appid": OPENWEATHER_API_KEY},
+                )
+            if geo_resp.status_code == 200:
+                geo_data = geo_resp.json()
+                if isinstance(geo_data, list) and geo_data:
+                    first = geo_data[0]
+                    resolved_lat = first.get("lat", resolved_lat)
+                    resolved_lon = first.get("lon", resolved_lon)
+                    resolved_name = first.get("name", location)
+        except Exception:
+            pass
+
+    if OPENWEATHER_API_KEY and resolved_lat is not None and resolved_lon is not None:
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.get(
                     "https://api.openweathermap.org/data/2.5/weather",
                     params={
-                        "lat": lat,
-                        "lon": lon,
+                        "lat": resolved_lat,
+                        "lon": resolved_lon,
                         "appid": OPENWEATHER_API_KEY,
                         "units": "metric",
                     },
@@ -284,7 +305,7 @@ async def get_weather(lat: float = 26.9124, lon: float = 75.7873):
                 d = resp.json()
                 weather_main = d.get("weather", [{}])[0]
                 return {
-                    "location": d.get("name", "Unknown"),
+                    "location": resolved_name or d.get("name", "Unknown"),
                     "temperature": round(d["main"]["temp"]),
                     "feels_like": round(d["main"]["feels_like"]),
                     "humidity": d["main"]["humidity"],
@@ -301,7 +322,11 @@ async def get_weather(lat: float = 26.9124, lon: float = 75.7873):
         except Exception:
             pass
 
-    return {**MOCK_WEATHER, "source": "mock"}
+    return {
+        **MOCK_WEATHER,
+        "location": resolved_name or MOCK_WEATHER["location"],
+        "source": "mock",
+    }
 
 
 # ---------------------------------------------------------------------------
