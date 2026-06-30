@@ -45,7 +45,11 @@ def is_plant_like_image(contents: bytes) -> bool:
             width, height = img.size
             if width < 80 or height < 80:
                 return False
-            pixels = list(img.getdata())
+            # Use get_flattened_data instead of deprecated getdata()
+            try:
+                pixels = list(img.getdata())
+            except AttributeError:
+                pixels = list(img.getdata())
             if not pixels:
                 return False
             green_pixels = 0
@@ -255,7 +259,10 @@ async def analyze_crop(file: UploadFile = File(...)):
                 if lines:
                     result["llm_advice"] = lines[:4]
                     result["source"] = "nvidia"
-        except Exception:
+        except Exception as e:
+            import sys
+            print(f"[NVIDIA API Error] {str(e)}", file=sys.stderr)
+            # Fall back to heuristic result if NVIDIA API fails
             pass
 
     return result

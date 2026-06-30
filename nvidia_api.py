@@ -24,7 +24,6 @@ def chat_completion(message, model="google/gemma-4-31b-it", stream=False, max_to
         "temperature": 1.0,
         "top_p": 0.95,
         "stream": stream,
-        "chat_template_kwargs": {"enable_thinking": True},
     }
 
     resp = requests.post(INVOKE_URL, headers=headers, json=payload, stream=stream, timeout=30)
@@ -57,15 +56,15 @@ def extract_text_from_response(resp_json):
         msg = first.get('message') or first.get('delta')
         if isinstance(msg, dict):
             content = msg.get('content') or msg.get('text')
-            if isinstance(content, str):
+            if isinstance(content, str) and content:
                 return content
         # older shape: {'choices': [{'text': '...'}]}
         text = first.get('text')
-        if isinstance(text, str):
+        if isinstance(text, str) and text:
             return text
     # Fallback: try top-level 'text' or 'message'
-    if isinstance(resp_json.get('text'), str):
+    if isinstance(resp_json.get('text'), str) and resp_json.get('text'):
         return resp_json.get('text')
-    if isinstance(resp_json.get('message'), str):
+    if isinstance(resp_json.get('message'), str) and resp_json.get('message'):
         return resp_json.get('message')
     return None
