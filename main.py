@@ -21,6 +21,14 @@ load_dotenv()
 
 app = FastAPI(title="KrishiScan API", version="1.0.0")
 
+
+def get_server_port() -> int:
+    """Return the port for local development or Render deployment."""
+    port_value = os.getenv("PORT", "")
+    if port_value.isdigit():
+        return int(port_value)
+    return 8000
+
 # CORS — allow frontend on any origin during development
 app.add_middleware(
     CORSMiddleware,
@@ -369,4 +377,4 @@ async def ai_test(q: str = "Hello from KrishiScan"):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=get_server_port(), reload=True)

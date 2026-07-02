@@ -9,7 +9,7 @@ from PIL import Image
 # Add parent directory to path so we can import main module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import get_weather, is_plant_like_image
+from main import get_server_port, get_weather, is_plant_like_image
 
 
 class PlantImageValidationTests(unittest.TestCase):
@@ -24,6 +24,16 @@ class PlantImageValidationTests(unittest.TestCase):
         buf = io.BytesIO()
         image.save(buf, format="PNG")
         self.assertFalse(is_plant_like_image(buf.getvalue()))
+
+
+class ServerConfigTests(unittest.TestCase):
+    def test_server_port_uses_render_port_when_present(self):
+        with patch.dict(os.environ, {"PORT": "10000"}, clear=False):
+            self.assertEqual(get_server_port(), 10000)
+
+    def test_server_port_falls_back_to_default(self):
+        with patch.dict(os.environ, {"PORT": ""}, clear=False):
+            self.assertEqual(get_server_port(), 8000)
 
 
 class WeatherLocationTests(unittest.TestCase):
